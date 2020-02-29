@@ -1,0 +1,6 @@
+- removed counting
+- changed voices (especially special that one was so loud/long)
+- made buttons bigger
+- made background color reflect current overhead
+- added a small cooldown(1000ms) to phase change button to prevent accidental double clicks
+- made it a lot less user friendly and basically only usable in 1 specific setup
