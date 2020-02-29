@@ -1,0 +1,346 @@
+<html>
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script>
+    let totalTicks = 2;
+    let attackCycleTick = 2;
+    let styleCount = 1;
+    let specialCount = 7;
+    let phase = 1;
+    let currentStyle = null;
+    let hydraCenter = false;
+    let myTimeout;
+
+    function popUpWindow(URL, windowName, windowWidth, windowHeight) {
+    var centerLeft = (screen.width/2)-(windowWidth/2);
+    var centerTop = (screen.height/2)-(windowHeight/2);
+    var windowFeatures = 'toolbar=no, location=no, directories=no, status=no, menubar=no, titlebar=no, scrollbars=no, resizable=no, ';
+    return window.open(URL, windowName, windowFeatures +' width='+ windowWidth +', height='+ windowHeight +', top='+ centerTop +', left='+ centerLeft);
+   }
+    </script>
+    <style>
+      button {
+        padding: 25px 80px;
+        color: white;
+        margin: 5px 20px;
+        font-size: 24px;
+        cursor: pointer;
+        height: 60vh;
+      }
+      .RangeButton {
+	background: #00AE68;
+width: 50%;
+height:200px;
+      }
+      .RangeButton:hover {
+	background: #21825B;
+      }
+      .MageButton {
+	background: #5DC8CD;
+width: 50%;
+height:200px;
+      }
+      .MageButton:hover {
+        background: #01939A;
+      }
+      body {
+        background: black;
+        color: white;
+        display: flex;
+        justify-content: flex-start;
+        flex-direction: column;
+        align-items: center;
+      }
+      .instructions {
+        text-align: left;
+        padding: 20px 0;
+        font-size: 16px;
+        max-width: 500px;
+      }
+      .instructions div {
+        color: cyan;
+        text-align: center;
+      }
+      .PhaseButton {
+        background: #32CD32;
+      }
+      .PhaseButton:hover {
+        background: #7FFF00;
+      }
+      .adjustButton {
+        color: black;
+        background: #FFFF00;
+        margin-right: -11px;
+
+      }
+      .adjustButton:hover {
+        background: #FFFF33;
+
+      }
+      .Resetbutton {
+        flex: 1;
+        background: #ff0000;
+      }
+      .Resetbutton:hover {
+        background: #660000;
+      }
+      .startedStatus {
+        text-align: center;
+        padding: 20px 0;
+      }
+      .currentPrayer {
+        font-size: 32px;
+      }
+      .currentPrayer span.mage {
+        color: #5DC8CD;
+        font-weight: bold;
+      }
+      .minorButtons {
+        display: flex;
+      }
+      .currentPrayer span.range {
+        color: #00AE68;
+        font-weight: bold;
+      }
+      a {
+        color: yellow;
+        margin-bottom: 10px;
+      }
+      .initialState {
+display: flex;
+justify-content: center;
+flex-direction: row;
+align-content: stretch;
+}
+.BtnContainer {
+          display: flex;
+          justify-content: center;
+          flex-direction: column;
+        }
+        .buttonContainer {
+          width: 100%;
+          max-width: 500px;
+        }
+      @media screen and (max-width: 1000px) and (min-width: 0) {
+        .instructions {
+          display: none;
+        }
+        footer {
+          display: none;
+        }
+        a {
+          display: none;
+        }
+        body {
+          overflow: hidden;
+          padding: 0;
+        }
+        button {
+          padding: 5px;
+          font-size: 18px;
+	  height: 100px;
+        }
+        .currentPrayer {
+          font-size: 12px;
+        }
+        .BtnContainer {
+          display: flex;
+        }
+        .startedStatus {
+          padding: 0;
+          margin: 0;
+        }
+        .BtnContainer button{
+          font-size: 12px;
+          margin: 0 5px;;
+        }
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+    <title>Hydra Helper</title>
+  </head>
+  <body >
+    <audio id="mage">
+        <source src="mage.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="range">
+        <source src="range.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="special">
+      <source src="special.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+
+    <div class="instructions">
+      <div>Instructions:</div> <br />As soon as the boss does its first attack click on the attack style the boss used. The timer assumes you clicked two ticks after being hit. When the boss phases click phase, the faster you press phase the more accurate the counter is<br/>
+      <br/>
+      NOTE: there is an off by one error where if you click the phase button too late and the counter thinks an attack went off when in reality the phase interrupted the attack, the cycle will be behind 1 attack. Press the 'adjust' button if you hear a callout but an attack didnt go off.
+      <br />
+      <br />
+      For accurate phase 3 luring get hydra in this position <a rel="noopener noreferrer" target="_blank" href="https://i.imgur.com/HBFosBC.png">https://i.imgur.com/HBFosBC.png</a>. This is because the time for hydra to get to center depends on position.
+      <br/>
+      <br />
+      Turn sound on for audio notification
+      </div>
+      <a onclick="popUpWindow(`${window.location.href}`,'Example','520','250');" href="javascript:void(0);"> Click here for a popout version that you can use easier (popup)</a>
+
+    </div>
+    <div class="buttonContainer">
+      <div class="initialState">
+        <button class="RangeButton">
+          Range
+        </button>
+        <button class="MageButton">
+          Mage
+        </button>
+      </div>
+      <div class="startedState hidden">
+        <div class="startedStatus">
+          <div class="currentPrayer"></div>
+          <div class="phaseCounter"></div>
+        </div>
+        <div class="BtnContainer">
+          <button class="PhaseButton">
+              Phase
+          </button>
+          <div class="minorButtons">
+            <button class="adjustButton">
+              Adjust
+            </button>
+            <button class="ResetButton">
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+    $(document).ready(function(){
+      let mageAudio = document.getElementById("mage");
+      let rangeAudio = document.getElementById("range");
+      let specialAudio = document.getElementById("special");
+
+      $('.RangeButton').click(function(){
+        currentStyle = 'range';
+        $('.initialState').addClass('hidden');
+        $('.startedState').removeClass('hidden');
+        myTimeout = startLoop();
+      })
+      $('.MageButton').click(function(){
+        currentStyle = 'mage';
+        $('.initialState').addClass('hidden');
+        $('.startedState').removeClass('hidden');
+        myTimeout = startLoop();
+      })
+      $('.adjustButton').click(() => {
+        if (styleCount === 0) {
+          styleCount = 2;
+          currentStyle = currentStyle === 'mage' ? 'range' : 'mage';
+        } else {
+          styleCount -= 1;
+        }
+      })
+      $('.PhaseButton').click(function(){
+	$('.PhaseButton').prop('disabled', true);
+        setTimeout(function() {
+	  $('.PhaseButton').prop('disabled', false);
+	},1000);
+	attackCycleTick = -1;
+        specialCount = 6;
+        phase += 1;
+        let nextStyle = currentStyle === 'mage' ? 'range' : 'mage'
+        nextStyle = styleCount === 0 ? currentStyle : nextStyle;
+        if (phase === 4) {
+          currentStyle = nextStyle;
+          if (nextStyle === 'mage') {
+            mage.play();
+          } else {
+            range.play();
+          }
+
+        }
+        $('.phaseCounter').html(`<span>Phase: ${phase}</span>`)
+      })
+      $('.ResetButton').click(function(){
+        totalTicks = 2;
+        attackCycleTick = 2;
+        styleCount = 1;
+        specialCount = 7;
+        phase = 1;
+        currentStyle = null;
+        hydraCenter = false;
+	document.body.style.backgroundColor = 'black';
+        $('.initialState').removeClass('hidden');
+        $('.startedState').addClass('hidden');
+        clearTimeout(myTimeout);
+      })
+
+      const startLoop = () => {
+        const neatCurrentStyle = currentStyle === 'mage' ? 'Mage' : 'Range'
+	const bgColor = currentStyle === 'mage' ? 'blue' : 'green'
+	document.body.style.backgroundColor = bgColor;
+        $('.currentPrayer').html(`Pray <span class="${currentStyle}">${neatCurrentStyle}</span>`)
+        $('.phaseCounter').html(`<span>Phase: ${phase}</span>`)
+        return setTimeout(() =>{
+          addCount();
+          myTimeout = startLoop();
+        }, 600)
+      }
+
+      const addCount = () => {
+        totalTicks += 1;
+        attackCycleTick += 1;
+        console.log('ATTACK TICK', attackCycleTick);
+        const specialAttackNext = specialCount === 9;
+        const nextStyle = currentStyle === 'mage' ? 'range' : 'mage'
+        const attackSpeed = phase === 4 ? 4 : 6;
+        if (attackCycleTick === attackSpeed) {
+          console.log(`Tick ${totalTicks}:`)
+          if (specialCount === 8) {
+          console.log('Play sound warning special incoming')
+          special.play();
+          }
+          if (specialAttackNext) {
+            specialCount = 0;
+            console.log('Hydra uses special');
+          } else if (styleCount === 2 || phase === 4) {
+            console.log(`Hydra attacks with ${currentStyle}`);
+            if (phase !== 4 ) {
+              if (nextStyle === 'mage') {
+                mage.play();
+              } else {
+                range.play();
+              }
+            }
+            currentStyle = nextStyle
+            styleCount = 0;
+            specialCount += 1;
+          } else {
+            console.log(`Hydra attacks with ${currentStyle}`)
+            specialCount += 1;
+            styleCount += 1;
+            if (styleCount === 1) {
+              //two.play();
+            } else if (styleCount === 2) {
+              //one.play();
+            }
+          }
+          attackCycleTick = (phase === 3 && specialAttackNext) ? hydraCenter ? -15 : -22 : 0;
+          if (phase === 3 && specialAttackNext) {
+            hydraCenter = true;
+          }
+        }
+      }
+
+    })
+    </script>
+  </body>
+<footer>
+<h1 > Made by Mazhar <a href="https://twitter.com/maz_rs"> @maz_rs </a> </h1>
+</ul>
+  </footer>
+</html>
